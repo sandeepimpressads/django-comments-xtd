@@ -53,7 +53,7 @@ Following is the application control logic described in 4 actions:
      
 
 Creating the secure token for the confirmation URL
---------------------------------------------------
+==================================================
 
 The Confirmation URL sent by email to the user has a secured token with the comment. To create the token Django-comments-xtd uses the module ``signed.py`` authored by Simon Willison and provided in `Django-OpenID <http://github.com/simonw/django-openid>`_. 
 
@@ -169,16 +169,21 @@ Comments then could be nested up to level 2:
          |-- Comment to First comment (level 1)
            |-- Comment to Comment to First comment (level 2)
 
-Comments posted to instances of every model in the project will allow up to level 2 of threading.
 
-On a project that allows users posting comments to instances of different models, the developer may want to declare a maximum thread level on a per ``app.model`` basis. For example, on an imaginary blog project with stories, quotes, diary entries and book/movie reviews, the developer might want to define a default, project wide, maximum thread level of 1 for any model and an specific maximum level of 5 for stories and quotes:
+On a project that allows users posting comments to instances of different models, the developer may want to declare a maximum thread level on a per ``app.model`` basis. On an imaginary blog project with stories, quotes, book reviews and movie reviews we could enable different comment nesting levels. We could enable a default thread level of 1 for all models. And decide to go down to 2 levels for blog stories while disabling nested comments for blog quotes:
 
    .. code-block:: python
 
        COMMENTS_XTD_MAX_THREAD_LEVEL = 1
        COMMENTS_XTD_MAX_THREAD_LEVEL_BY_APP_MODEL = {
-           'blog.story': 5,
-           'blog.quote': 5,
+           'blog.story': 2,
+           'blog.quote': 0,
        }
 
-So that ``blog.review`` and ``blog.diaryentry`` instances would support comments nested up to level 1, while ``blog.story`` and ``blog.quote`` instances would allow comments nested up to level 5.
+So that ``blog.bookreview`` and ``blog.moviereview`` instances would support one level of nested comments, ``blog.story`` two levels and ``blog.quote`` would disable nested comments.
+
+
+Follop-up notifications
+=======================
+
+To whom are sent follow-up notifications?

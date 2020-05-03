@@ -1,7 +1,8 @@
 import django
 from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+# from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.views.generic import TemplateView
 
 if django.VERSION[:2] < (2, 0):
@@ -23,8 +24,8 @@ urlpatterns = [
     re_path(r'^articles/', include('simple.articles.urls')),
     re_path(r'^comments/', include('django_comments_xtd.urls')),
     re_path(r'^feeds/comments/$', LatestCommentFeed(), name='comments-feed'),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 
-if settings.DEBUG:
-    urlpatterns += staticfiles_urlpatterns()
+# if settings.DEBUG:
+#     urlpatterns += staticfiles_urlpatterns()

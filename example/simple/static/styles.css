@@ -1,0 +1,120 @@
+html, body {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 20px;
+    background-color: white;
+}
+
+body {
+    margin: 0;
+    padding: 24px;
+    display: flex;
+    max-width: 840px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+header {
+    width: 100%;
+    padding-bottom: .5em;
+    border-bottom: 1px solid #66cfff;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+header > h5 {
+    margin: 0;
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 300;
+    color: #818a9a;
+}
+
+header > h5 > a:link,
+header > h5 > a:visited,
+header > h5 > a:hover,
+header > h5 > a:active {
+    color: inherit;
+}
+
+header > h3 {
+    margin: 0;
+    padding: 0 16px;
+    color: #40c4ff;
+    font-weight: 400;
+    letter-spacing: 1px;
+}
+
+main {
+    padding: 0.5em;
+}
+
+main > h1 {
+    margin: .3em 0 .5em;
+    padding: 0 24px;
+    color: #334;
+    font-weight: 300;
+}
+
+main > h6 {
+    margin-top: -16px;
+    padding: 0 26px;
+    font-size: .7em;
+    font-weight: 300;
+    color: #334;
+}
+
+
+main > div {
+    font-family: 'Spectral', serif;
+    font-size: 21px;
+    font-weight: 300;
+    line-height: 1.4em;
+    color: black;
+}
+
+main > div UL { list-style-type: square; }
+main > div UL LI { margin: 0 16px; }
+
+main > div LI a:link,
+main > div LI a:visited,
+main > div LI a:hover,
+main > div LI a:active {
+    text-transform: inherit;
+}
+
+main > div li span {
+    font-size: 0.8em;
+    color: gray;
+}
+
+footer {
+    padding: 0 7.5em 0 1em;
+    border-top: 1px solid #66cfff;
+    font-weight: 300;
+    font-size: 14px;
+    color: #818a9a;
+}
+
+footer P {
+    text-align: center
+}
+
+a {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.9em;
+    font-weight: 400;
+    text-transform: uppercase;
+    text-decoration: underline;
+}
+
+a:link { color: blue; text-decoration: none; }
+a:visited { color: purple; }
+a:hover { text-decoration: underline; }
+a:active { color: red; }
+
+footer a:link, footer a:visited, footer a:hover, footer a:active {
+    color: inherit;
+}

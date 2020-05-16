@@ -10,7 +10,7 @@ from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_protect
 from django.views.generic import ListView
 
@@ -18,7 +18,7 @@ from django.views.generic import ListView
 from django_comments.models import CommentFlag
 from django_comments.views.moderation import perform_flag
 from django_comments.views.utils import next_redirect, confirmation_view
-
+from django_comments import signals as django_comments_signals
 from django_comments_xtd import (get_form, comment_was_posted, signals, signed,
                                  get_model as get_comment_model)
 from django_comments_xtd.conf import settings
@@ -83,9 +83,16 @@ def _create_comment(tmp_comment):
     """
     Creates a XtdComment from a TmpXtdComment.
     """
-    comment = XtdComment(**tmp_comment)
-    # comment.is_public = True
-    comment.save()
+    comment_id = int(tmp_comment.pop('comment_id', 0))
+    if comment_id != 0:
+        # edit operation. assuming only comment text is changed.
+        comment = get_object_or_404(XtdComment, pk=comment_id)
+        comment.comment = tmp_comment.get('comment')
+        comment.save()
+    else:
+        comment = XtdComment(**tmp_comment)
+        # comment.is_public = True
+        comment.save()
     return comment
 
 
@@ -352,10 +359,12 @@ def like(request, comment_id, next=None):
                              c=comment.pk)
     # Render a form on GET
     else:
-        liked_it = request.user in comment.users_flagging(LIKEDIT_FLAG)
+        flag_qs = comment.flags.prefetch_related('user')\
+                                .filter(flag=LIKEDIT_FLAG)
+        users_likedit = [item.user for item in flag_qs]
         return render(request, 'django_comments_xtd/like.html',
                       {'comment': comment,
-                       'already_liked_it': liked_it,
+                       'already_liked_it': request.user in users_likedit,
                        'next': next})
 
 
@@ -386,10 +395,12 @@ def dislike(request, comment_id, next=None):
                              c=comment.pk)
     # Render a form on GET
     else:
-        disliked_it = request.user in comment.users_flagging(DISLIKEDIT_FLAG)
+        flag_qs = comment.flags.prefetch_related('user')\
+                                .filter(flag=DISLIKEDIT_FLAG)
+        users_dislikedit = [item.user for item in flag_qs]
         return render(request, 'django_comments_xtd/dislike.html',
                       {'comment': comment,
-                       'already_disliked_it': disliked_it,
+                       'already_disliked_it': request.user in users_dislikedit,
                        'next': next})
 
 
@@ -471,3 +482,39 @@ class XtdCommentListView(ListView):
                     prange = prange[-(self.page_range):]
             context['page_range'] = prange
         return context
+
+@login_required
+def delete_own_comment(request, comment_id, next=None):
+    comment = get_object_or_404(get_comment_model(),
+                                pk=comment_id,
+                                user=request.user,
+                                site__pk=get_current_site(request).pk)
+
+    # Delete on POST
+    if request.method == 'POST':
+        # Flag the comment as deleted instead of actually deleting it.
+        if comment.user == request.user:
+            comment.is_removed = True
+            comment.save()
+
+            flag, created = CommentFlag.objects.get_or_create(
+                comment=comment,
+                user=request.user,
+                flag=CommentFlag.MODERATOR_DELETION
+            )
+
+
+            django_comments_signals.comment_was_flagged.send(
+                sender=comment.__class__,
+                comment=comment,
+                flag=flag,
+                created=created,
+                request=request,
+            )
+
+        return next_redirect(request, fallback=next or 'comments-delete-done',
+                             c=comment.pk)
+
+    # Render a form on GET
+    else:
+        return render(request, 'comments/own_comment_delete.html', {'comment': comment, "next": next})

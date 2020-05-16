@@ -30,6 +30,8 @@ urlpatterns = [
         name='comments-xtd-api-feedback'),
     url(r'^api/flag/$', api.CreateReportFlag.as_view(),
         name='comments-xtd-api-flag'),
+    url(r'^delete-own/(\d+)/$', views.delete_own_comment,
+        name='comments-xtd-delete-own-comment'),
 
     url(r'', include("django_comments.urls")),
 ]

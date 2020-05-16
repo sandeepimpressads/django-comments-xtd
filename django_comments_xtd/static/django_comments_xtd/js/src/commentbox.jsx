@@ -132,7 +132,7 @@ export class CommentBox extends React.Component {
       }
     }
 
-    this.setState({tree:tree,
+    this.setState({tree: tree,
                    cids: curcids,
                    newcids: newcids,
                    counter: curcids.length});
@@ -155,6 +155,13 @@ export class CommentBox extends React.Component {
     });
   }
 
+  load_comments_initial() {
+    
+    var data = this.props.commments_json;
+    this.create_tree(data);
+     
+  }
+
   load_count() {
     $.ajax({
       url: this.props.count_url,
@@ -170,7 +177,7 @@ export class CommentBox extends React.Component {
   }
   
   componentDidMount() {
-    this.load_comments();
+    this.load_comments_initial();
     if(this.props.polling_interval)
       setInterval(this.load_count.bind(this), this.props.polling_interval);
   }

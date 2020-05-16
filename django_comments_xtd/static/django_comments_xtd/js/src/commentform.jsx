@@ -13,8 +13,9 @@ export class CommentForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      name: '', email: '', url: '', followup: false, comment: '',
+      name: '', email: '', url: '', followup: false, comment: this.props.comment || '',
       reply_to: this.props.reply_to || 0,
+      comment_id: this.props.comment_id || 0,
       visited: {name: false, email: false, comment: false},
       errors: {name: false, email: false, comment: false},
       previewing: false,
@@ -101,8 +102,38 @@ export class CommentForm extends React.Component {
     );
   }
 
+  render_signup_or_submit() {
+    let btn_submit_class = "btn btn-primary send-button",
+        btn_preview_class = "btn btn-secondary";
+    let btns_row_class = "form-group row";
+    if(this.state.reply_to != 0) {
+      btns_row_class += " mb-0";
+      btn_submit_class += " btn-sm";
+      btn_preview_class += " btn-sm";
+    }
+    var btn_label_preview = django.gettext("Preview");
+    var btn_label_send = django.gettext("Post");
+    
+    
+    if(!this.props.is_authenticated)
+    {
+    var url = (this.props.login_url + "?next=" +
+                 this.props.article_url); 
+    return (<a href={url} className="btn btn-primary">Login/Sign Up to comment</a>);
+     
+    }
+    else{
+    return (
+    <div>
+    <button type="submit" name="post" className={btn_submit_class}>{btn_label_send}</button>
+            <button name="preview" className={btn_preview_class}
+                   onClick={this.handle_preview}>{btn_label_preview}</button></div>
+             );
+    }
+  }
+
   render_field_name() {
-    if(this.props.is_authenticated && !this.props.request_name)
+    if(this.props.is_authenticated || !this.props.request_name)
       return "";
     let div_cssc = "form-group row",
         label_cssc = "col-form-label col-md-3 text-right",
@@ -267,7 +298,8 @@ export class CommentForm extends React.Component {
       email: this.state.email,
       url: this.state.url,
       followup: this.state.followup,
-      reply_to: this.state.reply_to
+      reply_to: this.state.reply_to,
+      comment_id: this.state.comment_id
     };
     
     $.ajax({
@@ -316,7 +348,7 @@ export class CommentForm extends React.Component {
 
     // Build Gravatar.
     const hash = md5(this.state.email.toLowerCase());
-    const avatar_url = "http://www.gravatar.com/avatar/"+hash+"?s=48&d=mm";
+    const avatar_url = "//www.gravatar.com/avatar/"+hash+"?s=48&d=mm";
     const avatar_img = <img className="mr-3" src={avatar_url}
                             height="48" width="48"/>;
     
@@ -362,17 +394,14 @@ export class CommentForm extends React.Component {
     let name = this.render_field_name();
     let mail = this.render_field_email();
     let url = this.render_field_url();
+    let signup_or_submit = this.render_signup_or_submit();
     let followup = this.render_field_followup();
     let btns_row_class = "form-group row";
-    let btn_submit_class = "btn btn-primary",
-        btn_preview_class = "btn btn-secondary";
+   
     if(this.state.reply_to != 0) {
       btns_row_class += " mb-0";
-      btn_submit_class += " btn-sm";
-      btn_preview_class += " btn-sm";
     }
-    var btn_label_preview = django.gettext("preview");
-    var btn_label_send = django.gettext("send");
+    
     
     return (
       <form method="POST" onSubmit={this.handle_submit}>
@@ -386,19 +415,18 @@ export class CommentForm extends React.Component {
                defaultValue={this.props.form.security_hash}/>
         <input type="hidden" name="reply_to"
                defaultValue={this.state.reply_to}/>
+        <input type="hidden" name="comment_id"
+               defaultValue={this.state.comment_id}/>
         <fieldset>
           <div style={{display:'none'}}>
             <input type="text" name="honeypot" defaultValue=""/>
           </div>
-          {comment} {name} {mail} {url} {followup}
+          {comment} {name}
         </fieldset>
         
         <div className={btns_row_class}>
           <div className="offset-md-3 col-md-7">
-            <button type="submit" name="post"
-                    className={btn_submit_class}>{btn_label_send}</button>&nbsp;
-            <button name="preview" className={btn_preview_class}
-                   onClick={this.handle_preview}>{btn_label_preview}</button>
+           {signup_or_submit}
           </div>
         </div>
       </form>
@@ -428,7 +456,6 @@ export class CommentForm extends React.Component {
               {preview}
               <div className={div_class}>
                 <div className="card-body">
-                  {header}
                   {alert_div}
                   {form}
                 </div>
